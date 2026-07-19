@@ -188,8 +188,6 @@
 
         let db = null;
         let usaFirebase = false;
-
-        if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyDPOKWNoJw1gfndhYKeNoTjQTUYMogs3lk") {
             try {
                 firebase.initializeApp(firebaseConfig);
                 db = firebase.firestore();
@@ -199,7 +197,7 @@
             } catch (e) {
                 console.error("Error al inicializar Firebase:", e);
             }
-        }
+        
 
         // ----------------------------------------------------
         // ESTADO LOCAL
