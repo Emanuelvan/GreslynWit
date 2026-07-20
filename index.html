@@ -126,6 +126,7 @@
                             📂 Fórmulas Guardadas
                         </h3>
                         <div id="lista-formulas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <!-- Aquí se inyectan dinámicamente -->
                             <p class="text-sm text-slate-400 col-span-full">Cargando fórmulas...</p>
                         </div>
                     </div>
@@ -200,7 +201,7 @@
                 </div>
             </div>
 
-            <!-- NUEVA SECCIÓN: INVENTARIO ACTUAL (Stock) -->
+            <!-- INVENTARIO ACTUAL Y ADMINISTRACIÓN -->
             <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                     <h2 class="text-lg font-bold text-slate-900">📊 Inventario Actual</h2>
@@ -208,19 +209,38 @@
                 <div class="p-6">
                     <div id="lista-inventario" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         <!-- Renderizado dinámico de stock -->
-                        <p class="text-sm text-slate-400 col-span-full">No hay productos en el inventario.</p>
                     </div>
 
-                    <!-- Herramienta rápida para sumar stock sin afectar finanzas -->
-                    <div class="mt-6 pt-6 border-t border-slate-200">
-                        <h3 class="text-sm font-semibold text-slate-800 mb-3">➕ Actualizar Stock Manualmente</h3>
-                        <form id="form-actualizar-stock" class="flex flex-col sm:flex-row gap-3">
-                            <select id="stock-producto-select" class="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" required>
-                                <option value="">Selecciona producto...</option>
-                            </select>
-                            <input type="number" id="stock-cantidad-add" min="-1000" max="1000" placeholder="Cant (+ / -)" required class="w-24 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                            <button type="submit" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg text-sm transition-all">Actualizar</button>
-                        </form>
+                    <!-- Panel de Administración Rápida (Stock y Precios) -->
+                    <div class="mt-8 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Columna 1: Actualizar Stock -->
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1">➕ Actualizar Stock Manualmente</h3>
+                            <form id="form-actualizar-stock" class="flex flex-col gap-3">
+                                <select id="stock-producto-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" required>
+                                    <option value="">Selecciona producto...</option>
+                                </select>
+                                <div class="flex gap-2">
+                                    <input type="number" id="stock-cantidad-add" min="-1000" max="1000" placeholder="Cant (+ / -)" required class="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <button type="submit" class="py-2 px-4 bg-slate-800 hover:bg-slate-700 text-white font-medium rounded-lg text-sm transition-all">Sumar</button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- Columna 2: Editar Precios -->
+                        <div class="bg-amber-50 p-4 rounded-xl border border-amber-100">
+                            <h3 class="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-1">✏️ Editar Costo / Precio</h3>
+                            <form id="form-editar-precios" class="flex flex-col gap-3">
+                                <select id="editar-producto-select" class="w-full px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" required>
+                                    <option value="">Selecciona producto...</option>
+                                </select>
+                                <div class="flex gap-2">
+                                    <input type="number" step="0.01" id="editar-costo" placeholder="Costo" required class="w-1/2 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <input type="number" step="0.01" id="editar-venta" placeholder="Venta" required class="w-1/2 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                </div>
+                                <button type="submit" class="w-full py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-sm transition-all">Actualizar Precios</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -305,7 +325,7 @@
                 db.collection("productos").onSnapshot((snapshot) => {
                     productos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     actualizarSelectorProductos();
-                    renderizarInventario(); // Renderizamos panel de stock
+                    renderizarInventario(); 
                 });
 
                 db.collection("transacciones").orderBy("fecha", "desc").onSnapshot((snapshot) => {
@@ -326,7 +346,7 @@
         }
 
         // ----------------------------------------------------
-        // LÓGICA DE LA CALCULADORA DE PRECIOS
+        // LÓGICA DE LA CALCULADORA Y BORRADO DE FÓRMULAS
         // ----------------------------------------------------
         function calcularValoresDinamicos() {
             const materiales = parseFloat(document.getElementById('calc-materiales').value) || 0;
@@ -382,6 +402,24 @@
             }
         });
 
+        // NUEVA FUNCIÓN: Borrar fórmula individual
+        window.borrarFormula = async function(id) {
+            if (confirm("¿Estás seguro de que quieres borrar esta fórmula?")) {
+                if (usaFirebase) {
+                    try {
+                        await db.collection("calculadora_precios").doc(id).delete();
+                    } catch (error) {
+                        console.error("Error borrando fórmula:", error);
+                        alert("Error al intentar borrar la fórmula de Firebase.");
+                    }
+                } else {
+                    formulasGuardadas = formulasGuardadas.filter(f => f.id !== id);
+                    localStorage.setItem('formulasGuardadas', JSON.stringify(formulasGuardadas));
+                    renderizarFormulas();
+                }
+            }
+        };
+
         function renderizarFormulas() {
             const contenedor = document.getElementById('lista-formulas');
             contenedor.innerHTML = '';
@@ -391,9 +429,16 @@
             }
             formulasGuardadas.forEach(f => {
                 const div = document.createElement('div');
-                div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between";
+                div.className = "bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col justify-between group";
                 div.innerHTML = `
-                    <p class="font-bold text-sm text-slate-900 truncate mb-3" title="${f.nombre}">${f.nombre}</p>
+                    <div class="flex justify-between items-start mb-3">
+                        <p class="font-bold text-sm text-slate-900 truncate pr-2" title="${f.nombre}">${f.nombre}</p>
+                        <button onclick="borrarFormula('${f.id}')" class="text-slate-300 hover:text-rose-500 transition-colors" title="Borrar Fórmula">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="space-y-1">
                         <div class="flex justify-between items-center text-xs">
                             <span class="text-slate-500">Costo Base:</span>
@@ -429,13 +474,12 @@
                 nombre: document.getElementById('prod-nombre').value,
                 costo: parseFloat(document.getElementById('prod-costo').value),
                 venta: parseFloat(document.getElementById('prod-venta').value),
-                stock: parseInt(document.getElementById('prod-stock').value) || 0 // Campo nuevo
+                stock: parseInt(document.getElementById('prod-stock').value) || 0
             };
             await guardarProducto(nuevo);
             document.getElementById('form-producto').reset();
         });
 
-        // Renderizar el panel de inventario
         function renderizarInventario() {
             const contenedor = document.getElementById('lista-inventario');
             contenedor.innerHTML = '';
@@ -446,16 +490,17 @@
             }
 
             productos.forEach(p => {
-                let colorClase = 'text-emerald-600 bg-emerald-50'; // Stock normal
-                if (p.stock <= 0) colorClase = 'text-rose-600 bg-rose-50'; // Sin stock
-                else if (p.stock < 5) colorClase = 'text-amber-600 bg-amber-50'; // Stock bajo
+                let colorClase = 'text-emerald-600 bg-emerald-50'; 
+                if (p.stock <= 0) colorClase = 'text-rose-600 bg-rose-50'; 
+                else if (p.stock < 5) colorClase = 'text-amber-600 bg-amber-50'; 
 
                 const div = document.createElement('div');
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm";
                 div.innerHTML = `
                     <div class="truncate pr-3">
                         <p class="text-sm font-bold text-slate-800 truncate" title="${p.nombre}">${p.nombre}</p>
-                        <p class="text-xs text-slate-500 mt-0.5">Venta: ${formatearMoneda(p.venta)}</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Venta: <span class="font-semibold">${formatearMoneda(p.venta)}</span></p>
+                        <p class="text-[11px] text-slate-400">Costo: ${formatearMoneda(p.costo)}</p>
                     </div>
                     <div class="${colorClase} px-3 py-1.5 rounded-lg text-center min-w-[3rem] border border-transparent">
                         <p class="text-lg font-black leading-none">${p.stock}</p>
@@ -466,7 +511,7 @@
             });
         }
 
-        // Función para actualizar stock manualmente sin transacción financiera
+        // Formulario: Actualizar Stock Manual
         document.getElementById('form-actualizar-stock').addEventListener('submit', async (e) => {
             e.preventDefault();
             const prodId = document.getElementById('stock-producto-select').value;
@@ -488,9 +533,55 @@
             }
         });
 
+        // NUEVO FORMULARIO: Editar Precios
+        const selectEditarProducto = document.getElementById('editar-producto-select');
+        const inputEditarCosto = document.getElementById('editar-costo');
+        const inputEditarVenta = document.getElementById('editar-venta');
+
+        selectEditarProducto.addEventListener('change', () => {
+            const prod = productos.find(p => p.id === selectEditarProducto.value);
+            if (prod) {
+                inputEditarCosto.value = prod.costo;
+                inputEditarVenta.value = prod.venta;
+            } else {
+                inputEditarCosto.value = '';
+                inputEditarVenta.value = '';
+            }
+        });
+
+        document.getElementById('form-editar-precios').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prodId = selectEditarProducto.value;
+            const nuevoCosto = parseFloat(inputEditarCosto.value);
+            const nuevaVenta = parseFloat(inputEditarVenta.value);
+
+            if (!prodId || isNaN(nuevoCosto) || isNaN(nuevaVenta)) return;
+
+            if (usaFirebase) {
+                try {
+                    await db.collection("productos").doc(prodId).update({ costo: nuevoCosto, venta: nuevaVenta });
+                    alert("¡Precios actualizados correctamente!");
+                } catch (error) {
+                    console.error("Error al actualizar precios:", error);
+                    alert("Ocurrió un error al intentar actualizar el producto.");
+                }
+            } else {
+                const prodIndex = productos.findIndex(p => p.id === prodId);
+                if (prodIndex > -1) {
+                    productos[prodIndex].costo = nuevoCosto;
+                    productos[prodIndex].venta = nuevaVenta;
+                    localStorage.setItem('productos', JSON.stringify(productos));
+                    actualizarSelectorProductos();
+                    renderizarInventario();
+                    alert("¡Precios actualizados localmente!");
+                }
+            }
+            document.getElementById('form-editar-precios').reset();
+        });
+
 
         // ----------------------------------------------------
-        // REGISTRO DE TRANSACCIONES (RESTA DE STOCK)
+        // REGISTRO DE TRANSACCIONES (RESTA DE STOCK Y SELECTORES)
         // ----------------------------------------------------
         const selectProductos = document.getElementById('trans-producto');
         const inputMonto = document.getElementById('trans-monto');
@@ -500,19 +591,29 @@
         const selectStockManual = document.getElementById('stock-producto-select');
 
         function actualizarSelectorProductos() {
+            // Limpiamos los 3 selectores
             selectProductos.innerHTML = '<option value="">-- Selecciona un producto --</option>';
             selectStockManual.innerHTML = '<option value="">Selecciona producto...</option>';
+            selectEditarProducto.innerHTML = '<option value="">Selecciona producto...</option>';
             
             productos.forEach(p => {
+                // Selector de Transacción
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = `${p.nombre} (Stock: ${p.stock || 0})`;
                 selectProductos.appendChild(opt);
 
+                // Selector de Actualizar Stock
                 const optManual = document.createElement('option');
                 optManual.value = p.id;
                 optManual.textContent = p.nombre;
                 selectStockManual.appendChild(optManual);
+
+                // Selector de Editar Precios
+                const optEditar = document.createElement('option');
+                optEditar.value = p.id;
+                optEditar.textContent = p.nombre;
+                selectEditarProducto.appendChild(optEditar);
             });
         }
 
@@ -521,7 +622,7 @@
             const cant = parseInt(inputCantidad.value) || 1;
             const tipo = selectTipo.value;
 
-            avisoStock.classList.add('hidden'); // Ocultar por defecto
+            avisoStock.classList.add('hidden'); 
 
             if (!prodId) {
                 inputMonto.value = '';
@@ -533,7 +634,6 @@
                 const precioUnitario = (tipo === 'venta') ? parseFloat(producto.venta) : parseFloat(producto.costo);
                 inputMonto.value = (precioUnitario * cant).toFixed(2);
 
-                // Si es venta, verificar si hay stock suficiente para mostrar la alerta
                 if (tipo === 'venta' && (producto.stock || 0) < cant) {
                     avisoStock.classList.remove('hidden');
                 }
@@ -551,10 +651,9 @@
             const cant = parseInt(inputCantidad.value);
             const tipo = selectTipo.value;
 
-            // Restricción dura: no dejar vender si el stock es negativo (opcional, pero recomendado)
             if (tipo === 'venta' && producto && (producto.stock || 0) < cant) {
                 if (!confirm(`El stock actual (${producto.stock}) es menor a lo que intentas vender (${cant}). ¿Deseas registrar la venta de todos modos (el stock quedará negativo)?`)) {
-                    return; // Aborta la transacción
+                    return; 
                 }
             }
 
@@ -567,15 +666,12 @@
                 costoUnidadAsociado: producto ? producto.costo : 0
             };
 
-            // Ejecutamos ambas actualizaciones (crear transacción y restar stock)
             if (usaFirebase) {
                 try {
                     const batch = db.batch();
-                    // 1. Guardar transacción
                     const nuevaRef = db.collection("transacciones").doc();
                     batch.set(nuevaRef, nueva);
                     
-                    // 2. Restar stock si es venta
                     if (tipo === 'venta' && producto) {
                         const prodRef = db.collection("productos").doc(prodId);
                         const nuevoStock = (producto.stock || 0) - cant;
