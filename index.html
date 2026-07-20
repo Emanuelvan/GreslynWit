@@ -28,7 +28,7 @@
 
 <body class="h-full text-slate-800">
 
-    <div class="min-h-full flex flex-col">
+    <div class="min-h-full flex flex-col relative">
         <header class="bg-white border-b border-slate-200 sticky top-0 z-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
                 <h1 class="text-xl font-bold text-slate-900 flex items-center gap-3">
@@ -135,7 +135,7 @@
 
             <!-- REGISTRO Y TRANSACCIONES -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Crear Producto (Con Stock) -->
+                <!-- Crear Producto -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
                     <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">📦 Crear Producto</h2>
                     <form id="form-producto" class="space-y-3">
@@ -163,7 +163,7 @@
                     </form>
                 </div>
 
-                <!-- Registrar Transacción (Con resta de stock) -->
+                <!-- Registrar Transacción -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 lg:col-span-2">
                     <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">🔄 Registrar Transacción</h2>
                     <form id="form-transaccion" class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -211,7 +211,7 @@
                         <!-- Renderizado dinámico de stock -->
                     </div>
 
-                    <!-- Panel de Administración Rápida (Stock y Precios) -->
+                    <!-- Panel de Administración -->
                     <div class="mt-8 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
                         <!-- Columna 1: Actualizar Stock -->
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
@@ -273,7 +273,80 @@
         </main>
     </div>
 
+    <!-- SISTEMA DE MODAL PERSONALIZADO -->
+    <div id="custom-modal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity"></div>
+        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+            <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md border border-slate-200">
+                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                        <div class="sm:flex sm:items-start">
+                            <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left w-full">
+                                <h3 class="text-lg font-bold leading-6 text-slate-900" id="modal-title">Título</h3>
+                                <div class="mt-2">
+                                    <p class="text-sm text-slate-500" id="modal-message">Mensaje</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 gap-3">
+                        <button type="button" id="modal-confirm" class="inline-flex w-full justify-center rounded-lg px-3 py-2 text-sm font-semibold text-white shadow-sm sm:w-auto transition-colors">Aceptar</button>
+                        <button type="button" id="modal-cancel" class="mt-3 inline-flex w-full justify-center rounded-lg bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50 sm:mt-0 sm:w-auto transition-colors">No, cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ----------------------------------------------------
+        // SISTEMA DE MODALES PERSONALIZADOS (Solo para confirmaciones / errores)
+        // ----------------------------------------------------
+        const CustomDialog = {
+            show: function(options) {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('custom-modal');
+                    const title = document.getElementById('modal-title');
+                    const message = document.getElementById('modal-message');
+                    const btnCancel = document.getElementById('modal-cancel');
+                    const btnConfirm = document.getElementById('modal-confirm');
+
+                    modal.classList.remove('hidden');
+                    btnCancel.classList.add('hidden');
+                    
+                    title.textContent = options.title || 'Mensaje';
+                    message.innerHTML = options.message || '';
+                    btnConfirm.textContent = options.confirmText || 'Aceptar';
+                    
+                    btnConfirm.className = `inline-flex w-full justify-center rounded-lg px-4 py-2 text-sm font-semibold text-white shadow-sm sm:w-auto transition-colors ${options.confirmBg || 'bg-brand-600 hover:bg-brand-700'}`;
+
+                    if (options.type === 'confirm') {
+                        btnCancel.classList.remove('hidden');
+                        btnCancel.textContent = options.cancelText || 'No, cancelar';
+                    }
+
+                    const cleanup = () => {
+                        modal.classList.add('hidden');
+                        btnConfirm.onclick = null;
+                        btnCancel.onclick = null;
+                    };
+
+                    btnConfirm.onclick = () => { cleanup(); resolve(true); };
+                    btnCancel.onclick = () => { cleanup(); resolve(false); };
+                });
+            },
+            alert: function(message, title = 'Información', type = 'info') {
+                let bg = 'bg-brand-600 hover:bg-brand-700';
+                if(type === 'error') bg = 'bg-rose-600 hover:bg-rose-700';
+                return this.show({ type: 'alert', message, title, confirmBg: bg });
+            },
+            confirm: function(message, title = 'Confirmar', type = 'warning', confirmText = 'Sí, aceptar') {
+                let bg = 'bg-brand-600 hover:bg-brand-700';
+                if(type === 'danger') bg = 'bg-rose-600 hover:bg-rose-700';
+                return this.show({ type: 'confirm', message, title, confirmText, confirmBg: bg });
+            }
+        };
+
         // ----------------------------------------------------
         // FUNCIÓN DE FORMATO MONEDA
         // ----------------------------------------------------
@@ -388,29 +461,32 @@
             if (usaFirebase) {
                 try {
                     await db.collection("calculadora_precios").add(nuevaFormula);
+                    // Actualización silenciosa
                     document.getElementById('form-calculadora').reset();
                     calcularValoresDinamicos(); 
                 } catch (error) {
                     console.error("Error guardando fórmula: ", error);
+                    CustomDialog.alert('No se pudo guardar la fórmula. Revisa tu conexión.', 'Error', 'error');
                 }
             } else {
                 formulasGuardadas.unshift({ id: Date.now().toString(), ...nuevaFormula });
                 localStorage.setItem('formulasGuardadas', JSON.stringify(formulasGuardadas));
+                // Actualización silenciosa
                 document.getElementById('form-calculadora').reset();
                 calcularValoresDinamicos(); 
                 renderizarFormulas();
             }
         });
 
-        // NUEVA FUNCIÓN: Borrar fórmula individual
         window.borrarFormula = async function(id) {
-            if (confirm("¿Estás seguro de que quieres borrar esta fórmula?")) {
+            const proceder = await CustomDialog.confirm("¿Estás seguro de que deseas eliminar esta fórmula permanentemente?", "Eliminar Fórmula", "danger", "Sí, borrar");
+            if (proceder) {
                 if (usaFirebase) {
                     try {
                         await db.collection("calculadora_precios").doc(id).delete();
                     } catch (error) {
                         console.error("Error borrando fórmula:", error);
-                        alert("Error al intentar borrar la fórmula de Firebase.");
+                        CustomDialog.alert("Error al intentar borrar la fórmula.", "Error", "error");
                     }
                 } else {
                     formulasGuardadas = formulasGuardadas.filter(f => f.id !== id);
@@ -477,6 +553,7 @@
                 stock: parseInt(document.getElementById('prod-stock').value) || 0
             };
             await guardarProducto(nuevo);
+            // Actualización silenciosa
             document.getElementById('form-producto').reset();
         });
 
@@ -511,7 +588,6 @@
             });
         }
 
-        // Formulario: Actualizar Stock Manual
         document.getElementById('form-actualizar-stock').addEventListener('submit', async (e) => {
             e.preventDefault();
             const prodId = document.getElementById('stock-producto-select').value;
@@ -529,11 +605,11 @@
                     localStorage.setItem('productos', JSON.stringify(productos));
                     renderizarInventario();
                 }
+                // Actualización silenciosa
                 document.getElementById('form-actualizar-stock').reset();
             }
         });
 
-        // NUEVO FORMULARIO: Editar Precios
         const selectEditarProducto = document.getElementById('editar-producto-select');
         const inputEditarCosto = document.getElementById('editar-costo');
         const inputEditarVenta = document.getElementById('editar-venta');
@@ -560,10 +636,10 @@
             if (usaFirebase) {
                 try {
                     await db.collection("productos").doc(prodId).update({ costo: nuevoCosto, venta: nuevaVenta });
-                    alert("¡Precios actualizados correctamente!");
+                    // Actualización silenciosa
                 } catch (error) {
                     console.error("Error al actualizar precios:", error);
-                    alert("Ocurrió un error al intentar actualizar el producto.");
+                    CustomDialog.alert("Ocurrió un error al intentar actualizar el producto.", "Error", "error");
                 }
             } else {
                 const prodIndex = productos.findIndex(p => p.id === prodId);
@@ -573,7 +649,7 @@
                     localStorage.setItem('productos', JSON.stringify(productos));
                     actualizarSelectorProductos();
                     renderizarInventario();
-                    alert("¡Precios actualizados localmente!");
+                    // Actualización silenciosa
                 }
             }
             document.getElementById('form-editar-precios').reset();
@@ -591,25 +667,21 @@
         const selectStockManual = document.getElementById('stock-producto-select');
 
         function actualizarSelectorProductos() {
-            // Limpiamos los 3 selectores
             selectProductos.innerHTML = '<option value="">-- Selecciona un producto --</option>';
             selectStockManual.innerHTML = '<option value="">Selecciona producto...</option>';
             selectEditarProducto.innerHTML = '<option value="">Selecciona producto...</option>';
             
             productos.forEach(p => {
-                // Selector de Transacción
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = `${p.nombre} (Stock: ${p.stock || 0})`;
                 selectProductos.appendChild(opt);
 
-                // Selector de Actualizar Stock
                 const optManual = document.createElement('option');
                 optManual.value = p.id;
                 optManual.textContent = p.nombre;
                 selectStockManual.appendChild(optManual);
 
-                // Selector de Editar Precios
                 const optEditar = document.createElement('option');
                 optEditar.value = p.id;
                 optEditar.textContent = p.nombre;
@@ -652,9 +724,13 @@
             const tipo = selectTipo.value;
 
             if (tipo === 'venta' && producto && (producto.stock || 0) < cant) {
-                if (!confirm(`El stock actual (${producto.stock}) es menor a lo que intentas vender (${cant}). ¿Deseas registrar la venta de todos modos (el stock quedará negativo)?`)) {
-                    return; 
-                }
+                const proceder = await CustomDialog.confirm(
+                    `El stock actual (${producto.stock}) es menor a lo que intentas vender (${cant}). <br><br> ¿Deseas registrar la venta de todos modos? (el inventario quedará en negativo)`,
+                    "⚠️ Inventario Insuficiente",
+                    "warning",
+                    "Sí, registrar venta"
+                );
+                if (!proceder) return; 
             }
 
             const nueva = {
@@ -680,6 +756,7 @@
                     await batch.commit();
                 } catch (error) {
                     console.error("Error registrando transacción:", error);
+                    CustomDialog.alert('Ocurrió un error al registrar el movimiento.', 'Error', 'error');
                 }
             } else {
                 transacciones.unshift({ id: Date.now().toString(), ...nueva });
@@ -703,7 +780,14 @@
         // FUNCIÓN "LIMPIAR TODO"
         // ----------------------------------------------------
         document.getElementById('btn-limpiar').addEventListener('click', async () => {
-            if (confirm('⚠️ ¿Estás seguro de que quieres borrar todo el historial de transacciones?\n\n(Esto no borrará tus productos ni tus fórmulas).')) {
+            const proceder = await CustomDialog.confirm(
+                'Esta acción borrará definitivamente todas tus transacciones de caja de la base de datos.<br><br> (Tus productos, inventario y fórmulas calculadas se mantendrán intactos).',
+                '⚠️ ¿Limpiar Historial de Dinero?',
+                'danger',
+                'Sí, borrar todo'
+            );
+
+            if (proceder) {
                 if (usaFirebase) {
                     try {
                         const btn = document.getElementById('btn-limpiar');
@@ -719,7 +803,7 @@
                         btn.innerHTML = textoOriginal;
                         btn.disabled = false;
                     } catch (error) {
-                        alert("Ocurrió un error al intentar borrar.");
+                        CustomDialog.alert("Ocurrió un error al intentar borrar.", "Error", "error");
                         document.getElementById('btn-limpiar').innerHTML = "🗑️ Limpiar historial";
                     }
                 } else {
