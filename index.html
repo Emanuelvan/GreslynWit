@@ -126,7 +126,6 @@
                             📂 Fórmulas Guardadas
                         </h3>
                         <div id="lista-formulas" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <!-- Aquí se inyectan dinámicamente -->
                             <p class="text-sm text-slate-400 col-span-full">Cargando fórmulas...</p>
                         </div>
                     </div>
@@ -135,20 +134,29 @@
 
             <!-- REGISTRO Y TRANSACCIONES -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Crear Producto -->
+                <!-- Crear Producto / Material -->
                 <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">📦 Crear Producto</h2>
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">📦 Crear Ítem en Inventario</h2>
                     <form id="form-producto" class="space-y-3">
-                        <div>
-                            <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nombre del Producto</label>
-                            <input type="text" id="prod-nombre" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Ej. Cerdinini Fresini">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Nombre</label>
+                                <input type="text" id="prod-nombre" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Ej. Taza / Arcilla">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Categoría</label>
+                                <select id="prod-categoria" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <option value="producto">🛍️ Producto Terminado</option>
+                                    <option value="material">🛠️ Material / Insumo</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Costo ($)</label>
                                 <input type="number" step="0.01" id="prod-costo" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="0.00">
                             </div>
-                            <div>
+                            <div id="contenedor-prod-venta">
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Precio Venta ($)</label>
                                 <input type="number" step="0.01" id="prod-venta" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="0.00">
                             </div>
@@ -172,13 +180,13 @@
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo de Movimiento</label>
                                 <select id="trans-tipo" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
                                     <option value="venta">Salida / Venta (Ingreso)</option>
-                                    <option value="gasto">Entrada / Gasto (Egreso)</option>
+                                    <option value="gasto">Entrada / Compra Material (Egreso)</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Producto / Ítem</label>
                                 <select id="trans-producto" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                                    <option value="">-- Selecciona un producto --</option>
+                                    <option value="">-- Selecciona un ítem --</option>
                                 </select>
                             </div>
                             <div>
@@ -207,9 +215,14 @@
                     <h2 class="text-lg font-bold text-slate-900">📊 Inventario Actual</h2>
                 </div>
                 <div class="p-6">
-                    <div id="lista-inventario" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        <!-- Renderizado dinámico de stock -->
-                    </div>
+                    
+                    <!-- Sección de Productos -->
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">🛍️ Productos Terminados</h3>
+                    <div id="lista-inventario-productos" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6"></div>
+
+                    <!-- Sección de Materiales -->
+                    <h3 class="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2 border-t border-slate-200 pt-6">🛠️ Materiales e Insumos (Utilidades)</h3>
+                    <div id="lista-inventario-materiales" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 
                     <!-- Panel de Administración -->
                     <div class="mt-8 pt-6 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -218,7 +231,7 @@
                             <h3 class="text-sm font-semibold text-slate-800 mb-3 flex items-center gap-1">➕ Actualizar Stock Manualmente</h3>
                             <form id="form-actualizar-stock" class="flex flex-col gap-3">
                                 <select id="stock-producto-select" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" required>
-                                    <option value="">Selecciona producto...</option>
+                                    <option value="">Selecciona un ítem...</option>
                                 </select>
                                 <div class="flex gap-2">
                                     <input type="number" id="stock-cantidad-add" min="-1000" max="1000" placeholder="Cant (+ / -)" required class="flex-1 px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
@@ -232,11 +245,11 @@
                             <h3 class="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-1">✏️ Editar Costo / Precio</h3>
                             <form id="form-editar-precios" class="flex flex-col gap-3">
                                 <select id="editar-producto-select" class="w-full px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm" required>
-                                    <option value="">Selecciona producto...</option>
+                                    <option value="">Selecciona un ítem...</option>
                                 </select>
                                 <div class="flex gap-2">
-                                    <input type="number" step="0.01" id="editar-costo" placeholder="Costo" required class="w-1/2 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
-                                    <input type="number" step="0.01" id="editar-venta" placeholder="Venta" required class="w-1/2 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <input type="number" step="0.01" id="editar-costo" placeholder="Costo" required class="flex-1 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
+                                    <input type="number" step="0.01" id="editar-venta" placeholder="Venta" required class="flex-1 px-3 py-2 border border-amber-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm">
                                 </div>
                                 <button type="submit" class="w-full py-2 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded-lg text-sm transition-all">Actualizar Precios</button>
                             </form>
@@ -300,7 +313,7 @@
 
     <script>
         // ----------------------------------------------------
-        // SISTEMA DE MODALES PERSONALIZADOS (Solo para confirmaciones / errores)
+        // SISTEMA DE MODALES PERSONALIZADOS
         // ----------------------------------------------------
         const CustomDialog = {
             show: function(options) {
@@ -461,17 +474,14 @@
             if (usaFirebase) {
                 try {
                     await db.collection("calculadora_precios").add(nuevaFormula);
-                    // Actualización silenciosa
                     document.getElementById('form-calculadora').reset();
                     calcularValoresDinamicos(); 
                 } catch (error) {
-                    console.error("Error guardando fórmula: ", error);
-                    CustomDialog.alert('No se pudo guardar la fórmula. Revisa tu conexión.', 'Error', 'error');
+                    CustomDialog.alert('No se pudo guardar la fórmula.', 'Error', 'error');
                 }
             } else {
                 formulasGuardadas.unshift({ id: Date.now().toString(), ...nuevaFormula });
                 localStorage.setItem('formulasGuardadas', JSON.stringify(formulasGuardadas));
-                // Actualización silenciosa
                 document.getElementById('form-calculadora').reset();
                 calcularValoresDinamicos(); 
                 renderizarFormulas();
@@ -485,7 +495,6 @@
                     try {
                         await db.collection("calculadora_precios").doc(id).delete();
                     } catch (error) {
-                        console.error("Error borrando fórmula:", error);
                         CustomDialog.alert("Error al intentar borrar la fórmula.", "Error", "error");
                     }
                 } else {
@@ -531,8 +540,26 @@
         }
 
         // ----------------------------------------------------
-        // LÓGICA DE INVENTARIO Y STOCK
+        // LÓGICA DE INVENTARIO (SEPARADO) Y LOGICA VISUAL
         // ----------------------------------------------------
+        
+        // Logica para ocultar "Precio Venta" si es material
+        const selectCategoriaCrear = document.getElementById('prod-categoria');
+        const contProdVenta = document.getElementById('contenedor-prod-venta');
+        const inputProdVenta = document.getElementById('prod-venta');
+
+        selectCategoriaCrear.addEventListener('change', (e) => {
+            if (e.target.value === 'material') {
+                contProdVenta.classList.add('hidden');
+                inputProdVenta.removeAttribute('required');
+                inputProdVenta.value = '0';
+            } else {
+                contProdVenta.classList.remove('hidden');
+                inputProdVenta.setAttribute('required', 'required');
+                inputProdVenta.value = '';
+            }
+        });
+
         async function guardarProducto(nuevoProducto) {
             if (usaFirebase) {
                 await db.collection("productos").add(nuevoProducto);
@@ -548,44 +575,71 @@
             e.preventDefault();
             const nuevo = {
                 nombre: document.getElementById('prod-nombre').value,
+                categoria: document.getElementById('prod-categoria').value,
                 costo: parseFloat(document.getElementById('prod-costo').value),
-                venta: parseFloat(document.getElementById('prod-venta').value),
+                venta: parseFloat(document.getElementById('prod-venta').value) || 0, // 0 si es material
                 stock: parseInt(document.getElementById('prod-stock').value) || 0
             };
             await guardarProducto(nuevo);
-            // Actualización silenciosa
             document.getElementById('form-producto').reset();
+            
+            // Restablecer vista del formulario
+            contProdVenta.classList.remove('hidden');
+            inputProdVenta.setAttribute('required', 'required');
         });
 
         function renderizarInventario() {
-            const contenedor = document.getElementById('lista-inventario');
-            contenedor.innerHTML = '';
+            const contProd = document.getElementById('lista-inventario-productos');
+            const contMat = document.getElementById('lista-inventario-materiales');
+            contProd.innerHTML = '';
+            contMat.innerHTML = '';
             
-            if (productos.length === 0) {
-                contenedor.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay productos en el inventario.</p>';
-                return;
-            }
+            let hayProd = false;
+            let hayMat = false;
 
             productos.forEach(p => {
+                const categoria = p.categoria || 'producto';
+
                 let colorClase = 'text-emerald-600 bg-emerald-50'; 
                 if (p.stock <= 0) colorClase = 'text-rose-600 bg-rose-50'; 
                 else if (p.stock < 5) colorClase = 'text-amber-600 bg-amber-50'; 
+
+                let infoPrecio = '';
+                if (categoria === 'producto') {
+                    infoPrecio = `
+                        <p class="text-[11px] text-slate-500 mt-1">Venta: <span class="font-semibold">${formatearMoneda(p.venta)}</span></p>
+                        <p class="text-[11px] text-slate-400">Costo: ${formatearMoneda(p.costo)}</p>
+                    `;
+                } else {
+                    infoPrecio = `
+                        <p class="text-[11px] text-slate-500 mt-1">Costo Unitario: <span class="font-semibold">${formatearMoneda(p.costo)}</span></p>
+                    `;
+                }
 
                 const div = document.createElement('div');
                 div.className = "bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm";
                 div.innerHTML = `
                     <div class="truncate pr-3">
                         <p class="text-sm font-bold text-slate-800 truncate" title="${p.nombre}">${p.nombre}</p>
-                        <p class="text-[11px] text-slate-500 mt-1">Venta: <span class="font-semibold">${formatearMoneda(p.venta)}</span></p>
-                        <p class="text-[11px] text-slate-400">Costo: ${formatearMoneda(p.costo)}</p>
+                        ${infoPrecio}
                     </div>
                     <div class="${colorClase} px-3 py-1.5 rounded-lg text-center min-w-[3rem] border border-transparent">
                         <p class="text-lg font-black leading-none">${p.stock}</p>
                         <p class="text-[10px] uppercase font-bold tracking-wider mt-1">Unds</p>
                     </div>
                 `;
-                contenedor.appendChild(div);
+
+                if (categoria === 'producto') {
+                    contProd.appendChild(div);
+                    hayProd = true;
+                } else {
+                    contMat.appendChild(div);
+                    hayMat = true;
+                }
             });
+
+            if (!hayProd) contProd.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay productos terminados registrados.</p>';
+            if (!hayMat) contMat.innerHTML = '<p class="text-sm text-slate-500 col-span-full">No hay materiales o insumos registrados.</p>';
         }
 
         document.getElementById('form-actualizar-stock').addEventListener('submit', async (e) => {
@@ -605,7 +659,6 @@
                     localStorage.setItem('productos', JSON.stringify(productos));
                     renderizarInventario();
                 }
-                // Actualización silenciosa
                 document.getElementById('form-actualizar-stock').reset();
             }
         });
@@ -618,10 +671,20 @@
             const prod = productos.find(p => p.id === selectEditarProducto.value);
             if (prod) {
                 inputEditarCosto.value = prod.costo;
-                inputEditarVenta.value = prod.venta;
+                if(prod.categoria === 'material') {
+                    inputEditarVenta.classList.add('hidden');
+                    inputEditarVenta.removeAttribute('required');
+                    inputEditarVenta.value = '0';
+                } else {
+                    inputEditarVenta.classList.remove('hidden');
+                    inputEditarVenta.setAttribute('required', 'required');
+                    inputEditarVenta.value = prod.venta;
+                }
             } else {
                 inputEditarCosto.value = '';
                 inputEditarVenta.value = '';
+                inputEditarVenta.classList.remove('hidden');
+                inputEditarVenta.setAttribute('required', 'required');
             }
         });
 
@@ -629,17 +692,15 @@
             e.preventDefault();
             const prodId = selectEditarProducto.value;
             const nuevoCosto = parseFloat(inputEditarCosto.value);
-            const nuevaVenta = parseFloat(inputEditarVenta.value);
+            const nuevaVenta = parseFloat(inputEditarVenta.value) || 0;
 
-            if (!prodId || isNaN(nuevoCosto) || isNaN(nuevaVenta)) return;
+            if (!prodId || isNaN(nuevoCosto)) return;
 
             if (usaFirebase) {
                 try {
                     await db.collection("productos").doc(prodId).update({ costo: nuevoCosto, venta: nuevaVenta });
-                    // Actualización silenciosa
                 } catch (error) {
-                    console.error("Error al actualizar precios:", error);
-                    CustomDialog.alert("Ocurrió un error al intentar actualizar el producto.", "Error", "error");
+                    CustomDialog.alert("Ocurrió un error al intentar actualizar.", "Error", "error");
                 }
             } else {
                 const prodIndex = productos.findIndex(p => p.id === prodId);
@@ -649,15 +710,16 @@
                     localStorage.setItem('productos', JSON.stringify(productos));
                     actualizarSelectorProductos();
                     renderizarInventario();
-                    // Actualización silenciosa
                 }
             }
             document.getElementById('form-editar-precios').reset();
+            inputEditarVenta.classList.remove('hidden');
+            inputEditarVenta.setAttribute('required', 'required');
         });
 
 
         // ----------------------------------------------------
-        // REGISTRO DE TRANSACCIONES (RESTA DE STOCK Y SELECTORES)
+        // REGISTRO DE TRANSACCIONES Y SELECTORES AGRUPADOS
         // ----------------------------------------------------
         const selectProductos = document.getElementById('trans-producto');
         const inputMonto = document.getElementById('trans-monto');
@@ -667,26 +729,45 @@
         const selectStockManual = document.getElementById('stock-producto-select');
 
         function actualizarSelectorProductos() {
-            selectProductos.innerHTML = '<option value="">-- Selecciona un producto --</option>';
-            selectStockManual.innerHTML = '<option value="">Selecciona producto...</option>';
-            selectEditarProducto.innerHTML = '<option value="">Selecciona producto...</option>';
+            const selects = [selectProductos, selectStockManual, selectEditarProducto];
+            selects.forEach(s => s.innerHTML = '<option value="">-- Selecciona un ítem --</option>');
             
+            const gProdTrans = document.createElement('optgroup'); gProdTrans.label = "🛍️ Productos Terminados";
+            const gMatTrans = document.createElement('optgroup'); gMatTrans.label = "🛠️ Materiales e Insumos";
+
+            const gProdStock = document.createElement('optgroup'); gProdStock.label = "🛍️ Productos Terminados";
+            const gMatStock = document.createElement('optgroup'); gMatStock.label = "🛠️ Materiales e Insumos";
+
+            const gProdEdit = document.createElement('optgroup'); gProdEdit.label = "🛍️ Productos Terminados";
+            const gMatEdit = document.createElement('optgroup'); gMatEdit.label = "🛠️ Materiales e Insumos";
+
             productos.forEach(p => {
+                const cat = p.categoria || 'producto';
+
                 const opt = document.createElement('option');
                 opt.value = p.id;
                 opt.textContent = `${p.nombre} (Stock: ${p.stock || 0})`;
-                selectProductos.appendChild(opt);
+                if(cat === 'producto') gProdTrans.appendChild(opt); else gMatTrans.appendChild(opt);
 
                 const optManual = document.createElement('option');
                 optManual.value = p.id;
                 optManual.textContent = p.nombre;
-                selectStockManual.appendChild(optManual);
+                if(cat === 'producto') gProdStock.appendChild(optManual); else gMatStock.appendChild(optManual);
 
                 const optEditar = document.createElement('option');
                 optEditar.value = p.id;
                 optEditar.textContent = p.nombre;
-                selectEditarProducto.appendChild(optEditar);
+                if(cat === 'producto') gProdEdit.appendChild(optEditar); else gMatEdit.appendChild(optEditar);
             });
+
+            if(gProdTrans.children.length > 0) selectProductos.appendChild(gProdTrans);
+            if(gMatTrans.children.length > 0) selectProductos.appendChild(gMatTrans);
+
+            if(gProdStock.children.length > 0) selectStockManual.appendChild(gProdStock);
+            if(gMatStock.children.length > 0) selectStockManual.appendChild(gMatStock);
+
+            if(gProdEdit.children.length > 0) selectEditarProducto.appendChild(gProdEdit);
+            if(gMatEdit.children.length > 0) selectEditarProducto.appendChild(gMatEdit);
         }
 
         function verificarStock() {
@@ -703,6 +784,7 @@
 
             const producto = productos.find(p => p.id === prodId);
             if (producto) {
+                // Si es venta usamos el precio de venta, si es compra/gasto usamos el costo
                 const precioUnitario = (tipo === 'venta') ? parseFloat(producto.venta) : parseFloat(producto.costo);
                 inputMonto.value = (precioUnitario * cant).toFixed(2);
 
@@ -725,10 +807,10 @@
 
             if (tipo === 'venta' && producto && (producto.stock || 0) < cant) {
                 const proceder = await CustomDialog.confirm(
-                    `El stock actual (${producto.stock}) es menor a lo que intentas vender (${cant}). <br><br> ¿Deseas registrar la venta de todos modos? (el inventario quedará en negativo)`,
+                    `El stock actual (${producto.stock}) es menor a lo que intentas registrar (${cant}). <br><br> ¿Deseas registrar la salida de todos modos? (el inventario quedará en negativo)`,
                     "⚠️ Inventario Insuficiente",
                     "warning",
-                    "Sí, registrar venta"
+                    "Sí, registrar salida"
                 );
                 if (!proceder) return; 
             }
@@ -748,22 +830,24 @@
                     const nuevaRef = db.collection("transacciones").doc();
                     batch.set(nuevaRef, nueva);
                     
-                    if (tipo === 'venta' && producto) {
+                    if (producto) {
                         const prodRef = db.collection("productos").doc(prodId);
-                        const nuevoStock = (producto.stock || 0) - cant;
+                        // Si es venta resta stock, si es compra de material suma stock
+                        const ajuste = (tipo === 'venta') ? -cant : cant;
+                        const nuevoStock = (producto.stock || 0) + ajuste;
                         batch.update(prodRef, { stock: nuevoStock });
                     }
                     await batch.commit();
                 } catch (error) {
-                    console.error("Error registrando transacción:", error);
                     CustomDialog.alert('Ocurrió un error al registrar el movimiento.', 'Error', 'error');
                 }
             } else {
                 transacciones.unshift({ id: Date.now().toString(), ...nueva });
                 localStorage.setItem('transacciones', JSON.stringify(transacciones));
                 
-                if (tipo === 'venta' && producto) {
-                    producto.stock = (producto.stock || 0) - cant;
+                if (producto) {
+                    const ajuste = (tipo === 'venta') ? -cant : cant;
+                    producto.stock = (producto.stock || 0) + ajuste;
                     localStorage.setItem('productos', JSON.stringify(productos));
                     renderizarInventario();
                     actualizarSelectorProductos();
@@ -781,7 +865,7 @@
         // ----------------------------------------------------
         document.getElementById('btn-limpiar').addEventListener('click', async () => {
             const proceder = await CustomDialog.confirm(
-                'Esta acción borrará definitivamente todas tus transacciones de caja de la base de datos.<br><br> (Tus productos, inventario y fórmulas calculadas se mantendrán intactos).',
+                'Esta acción borrará definitivamente todas tus transacciones de caja de la base de datos.<br><br> (Tus productos, materiales y fórmulas calculadas se mantendrán intactos).',
                 '⚠️ ¿Limpiar Historial de Dinero?',
                 'danger',
                 'Sí, borrar todo'
