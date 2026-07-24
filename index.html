@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Emprendimiento Inteligente</title>
+    <title>Si lees esto, te amo</title>
+    <link rel="icon" type="image" href="Logo.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -93,38 +94,74 @@
                 </div>
             </div>
 
-            <!-- REGISTRAR TRANSACCIÓN -->
-            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-                <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">🔄 Registrar Transacción (Caja)</h2>
-                <form id="form-transaccion" class="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
-                        <select id="trans-tipo" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                            <option value="venta">Salida / Venta (Ingreso)</option>
-                            <option value="gasto">Entrada / Compra (Egreso)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Ítem</label>
-                        <select id="trans-producto" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                            <option value="">-- Selecciona --</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Cantidad</label>
-                        <input type="number" id="trans-cantidad" min="1" value="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total ($)</label>
-                        <input type="number" step="0.01" id="trans-monto" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Monto total">
-                    </div>
-                    <div class="md:col-span-4 flex justify-between items-center">
-                        <p id="aviso-stock" class="text-xs text-rose-500 hidden font-bold">⚠️ La cantidad supera el stock disponible.</p>
-                        <button type="submit" id="btn-registrar-trans" class="ml-auto py-2.5 px-6 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg text-sm transition-all shadow-sm">
-                            Registrar Movimiento
-                        </button>
-                    </div>
-                </form>
+            <!-- PANELES DE REGISTRO (Inventario vs Ocasional) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- REGISTRAR TRANSACCIÓN (INVENTARIO) -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">📦 Movimiento de Inventario</h2>
+                    <form id="form-transaccion" class="flex-1 flex flex-col justify-between space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
+                                <select id="trans-tipo" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <option value="venta">Salida / Venta (Ingreso)</option>
+                                    <option value="gasto">Entrada / Compra (Egreso)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Ítem</label>
+                                <select id="trans-producto" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                                    <option value="">-- Selecciona --</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Cantidad</label>
+                                <input type="number" id="trans-cantidad" min="1" value="1" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total ($)</label>
+                                <input type="number" step="0.01" id="trans-monto" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm" placeholder="Autocalculado">
+                            </div>
+                        </div>
+                        <div class="mt-auto pt-2">
+                            <p id="aviso-stock" class="text-xs text-rose-500 hidden font-bold mb-2">⚠️ La cantidad supera el stock disponible.</p>
+                            <button type="submit" class="w-full py-2.5 px-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg text-sm transition-all shadow-sm">
+                                Registrar Movimiento
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- REGISTRAR TRANSACCIÓN (OCASIONAL) -->
+                <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col">
+                    <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2 mb-4">💸 Ingreso/Gasto Ocasional</h2>
+                    <form id="form-ocasional" class="flex-1 flex flex-col justify-between space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Concepto / Detalle</label>
+                                <input type="text" id="oca-detalle" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm" placeholder="Ej. Gasto a tu noviecito, Temu xd...">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo de Movimiento</label>
+                                <select id="oca-tipo" class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm">
+                                    <option value="ingreso_ocasional">Ingreso Extra (+)</option>
+                                    <option value="gasto_ocasional">Gasto Extra (-)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Monto ($)</label>
+                                <input type="number" step="0.01" id="oca-monto" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm" placeholder="0.00">
+                            </div>
+                        </div>
+                        <div class="mt-auto pt-2">
+                            <button type="submit" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg text-sm transition-all shadow-sm">
+                                Registrar Transacción
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
             </div>
 
             <!-- TABLA DE HISTORIAL -->
@@ -323,12 +360,9 @@
         // LÓGICA DE NAVEGACIÓN Y MENÚ HAMBURGUESA
         // ----------------------------------------------------
         function cambiarVista(idVista) {
-            // Ocultar todas las vistas
             document.querySelectorAll('.vista-seccion').forEach(vista => vista.classList.add('hidden'));
-            // Mostrar la vista solicitada
             document.getElementById(idVista).classList.remove('hidden');
 
-            // Actualizar botones de escritorio
             document.querySelectorAll('.nav-btn').forEach(btn => {
                 btn.classList.remove('text-brand-600', 'border-b-2', 'border-brand-600');
                 btn.classList.add('text-slate-500');
@@ -339,7 +373,6 @@
                 activeBtn.classList.add('text-brand-600', 'border-b-2', 'border-brand-600');
             }
 
-            // Actualizar botones móviles
             document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
                 btn.classList.remove('text-brand-600');
                 btn.classList.add('text-slate-600');
@@ -350,7 +383,6 @@
                 activeMobileBtn.classList.add('text-brand-600');
             }
 
-            // Cerrar menú móvil si está abierto
             document.getElementById('menu-mobile').classList.add('hidden');
         }
 
@@ -435,7 +467,7 @@
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             usaFirebase = true;
-            document.getElementById('db-status').innerHTML = '🟢 Conectado';
+            document.getElementById('db-status').innerHTML = '🟢 Si funciona 😎👍';
             document.getElementById('db-status').className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800';
         } catch (e) {
             console.error("Error al inicializar Firebase:", e);
@@ -655,7 +687,7 @@
             }
         });
 
-        // EDICIÓN DE ÍTEM COMPLETO (Nombre incluido)
+        // EDICIÓN DE ÍTEM COMPLETO
         const selectEditarProducto = document.getElementById('editar-producto-select');
         const inputEditarNombre = document.getElementById('editar-nombre');
         const inputEditarCosto = document.getElementById('editar-costo');
@@ -709,7 +741,7 @@
         });
 
         // ----------------------------------------------------
-        // SELECTORES AGRUPADOS Y TRANSACCIONES
+        // SELECTORES Y TRANSACCIONES (INVENTARIO Y OCASIONAL)
         // ----------------------------------------------------
         const selectProductos = document.getElementById('trans-producto');
         const inputMonto = document.getElementById('trans-monto');
@@ -763,6 +795,7 @@
 
         selectProductos.addEventListener('change', verificarStock); inputCantidad.addEventListener('input', verificarStock); selectTipo.addEventListener('change', verificarStock);
 
+        // Submit: Transacción ligada a inventario
         document.getElementById('form-transaccion').addEventListener('submit', async (e) => {
             e.preventDefault();
             const prodId = selectProductos.value; const pr = productos.find(p => p.id === prodId);
@@ -793,6 +826,33 @@
             document.getElementById('form-transaccion').reset(); inputCantidad.value = 1; avisoStock.classList.add('hidden');
         });
 
+        // Submit: Transacción Ocasional Libre
+        document.getElementById('form-ocasional').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const tipo = document.getElementById('oca-tipo').value;
+            const detalle = document.getElementById('oca-detalle').value.trim();
+            const monto = parseFloat(document.getElementById('oca-monto').value);
+
+            const nueva = {
+                fecha: new Date().toISOString(),
+                tipo: tipo,
+                detalle: detalle,
+                cantidad: 1,
+                monto: monto,
+                costoUnidadAsociado: 0
+            };
+
+            if (usaFirebase) {
+                try { await db.collection("transacciones").add(nueva); } 
+                catch (error) { CustomDialog.alert('Ocurrió un error al registrar el movimiento.', 'Error', 'error'); }
+            } else {
+                transacciones.unshift({ id: Date.now().toString(), ...nueva });
+                localStorage.setItem('transacciones', JSON.stringify(transacciones));
+                renderizarTransacciones();
+            }
+            document.getElementById('form-ocasional').reset();
+        });
+
         document.getElementById('btn-limpiar').addEventListener('click', async () => {
             const proceder = await CustomDialog.confirm('Esta acción borrará definitivamente todas tus transacciones financieras.<br><br> (Tus productos, inventarios y fórmulas se mantendrán).', '⚠️ Limpiar Historial', 'danger', 'Sí, borrar todo');
             if (proceder) {
@@ -812,15 +872,30 @@
             let tIng = 0, tEgr = 0, costoMerc = 0;
 
             transacciones.forEach(t => {
-                const esV = t.tipo === 'venta'; const m = formatearMoneda(t.monto);
-                if (esV) { tIng += t.monto; costoMerc += (t.costoUnidadAsociado || 0) * (t.cantidad || 1); } else { tEgr += t.monto; }
+                const esIngreso = t.tipo === 'venta' || t.tipo === 'ingreso_ocasional';
+                const m = formatearMoneda(t.monto);
+
+                if (esIngreso) { 
+                    tIng += t.monto; 
+                    if (t.tipo === 'venta') costoMerc += (t.costoUnidadAsociado || 0) * (t.cantidad || 1); 
+                } else { 
+                    tEgr += t.monto; 
+                }
+
+                let conf = { text: 'Desconocido', classes: 'bg-gray-100 text-gray-800' };
+                if (t.tipo === 'venta') conf = { text: 'Venta (Ingreso)', classes: 'bg-emerald-100 text-emerald-800' };
+                else if (t.tipo === 'gasto') conf = { text: 'Compra (Egreso)', classes: 'bg-rose-100 text-rose-800' };
+                else if (t.tipo === 'ingreso_ocasional') conf = { text: 'Ingreso Extra', classes: 'bg-teal-100 text-teal-800' };
+                else if (t.tipo === 'gasto_ocasional') conf = { text: 'Gasto Extra', classes: 'bg-orange-100 text-orange-800' };
+
+                const esOcasional = (t.tipo === 'ingreso_ocasional' || t.tipo === 'gasto_ocasional');
 
                 const tr = document.createElement('tr'); tr.className = "hover:bg-slate-50 transition-colors";
                 tr.innerHTML = `<td class="px-6 py-4 whitespace-nowrap text-slate-500">${new Date(t.fecha).toLocaleDateString()}</td>
                 <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900">${t.detalle}</td>
-                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${esV ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">${esV ? 'Venta (Ingreso)' : 'Gasto (Egreso)'}</span></td>
-                <td class="px-6 py-4 whitespace-nowrap text-slate-500">${t.cantidad}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right font-bold ${esV ? 'text-emerald-600' : 'text-rose-600'}">${esV ? '+' : '-'}${m}</td>`;
+                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${conf.classes}">${conf.text}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-slate-500">${esOcasional && t.cantidad === 1 ? '-' : t.cantidad}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right font-bold ${esIngreso ? 'text-emerald-600' : 'text-rose-600'}">${esIngreso ? '+' : '-'}${m}</td>`;
                 tbody.appendChild(tr);
             });
 
