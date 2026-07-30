@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Si lees esto, te amo</title>
+    <title>Si Lo lees otra vez, te amo</title>
     <link rel="icon" type="image" href="Logo.jpeg">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -140,7 +140,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="sm:col-span-2">
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Concepto / Detalle</label>
-                                <input type="text" id="oca-detalle" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm" placeholder="Ej. Gasto a tu noviecito, Temu xd...">
+                                <input type="text" id="oca-detalle" required class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-800 text-sm" placeholder="Ej. Regalito para el novio...">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tipo de Movimiento</label>
@@ -156,7 +156,7 @@
                         </div>
                         <div class="mt-auto pt-2">
                             <button type="submit" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold rounded-lg text-sm transition-all shadow-sm">
-                                Registrar Transacción
+                                Registrar Operación Libre
                             </button>
                         </div>
                     </form>
@@ -467,7 +467,7 @@
             firebase.initializeApp(firebaseConfig);
             db = firebase.firestore();
             usaFirebase = true;
-            document.getElementById('db-status').innerHTML = '🟢 Si funciona 😎👍';
+            document.getElementById('db-status').innerHTML = '🟢 Aún sirve 😎🤙';
             document.getElementById('db-status').className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800';
         } catch (e) {
             console.error("Error al inicializar Firebase:", e);
@@ -644,7 +644,10 @@
             contProd.innerHTML = ''; contMat.innerHTML = '';
             let hayProd = false, hayMat = false;
 
-            productos.forEach(p => {
+            // Ordenar productos alfabéticamente
+            const productosOrdenados = [...productos].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            productosOrdenados.forEach(p => {
                 const categoria = p.categoria || 'producto';
                 let colorClase = 'text-emerald-600 bg-emerald-50'; 
                 if (p.stock <= 0) colorClase = 'text-rose-600 bg-rose-50'; 
@@ -761,7 +764,10 @@
 
             const grpTrans = crearOptGroups(), grpStock = crearOptGroups(), grpEdit = crearOptGroups();
 
-            productos.forEach(pr => {
+            // Ordenar alfabéticamente antes de llenar los selectores
+            const productosOrdenados = [...productos].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+            productosOrdenados.forEach(pr => {
                 const cat = pr.categoria || 'producto';
                 const appendOpt = (grupoP, grupoM, texto) => {
                     const o = document.createElement('option'); o.value = pr.id; o.textContent = texto;
