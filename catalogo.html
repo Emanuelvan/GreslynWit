@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-slate-50">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GreslynWit - Catálogo de Productos</title>
+    <link rel="icon" type="image" href="Logo.jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+</head>
+
+<body class="min-h-full flex flex-col text-slate-800 font-sans">
+
+    <!-- CABECERA PÚBLICA -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-center gap-4">
+            <img src="Logo.jpeg" alt="Logo GreslynWit" class="h-12 w-12 rounded-full object-cover border border-slate-200 shadow-sm fallback-img" onerror="this.src='https://ui-avatars.com/api/?name=GW&background=15803d&color=fff'">
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">GreslynWit</h1>
+        </div>
+    </header>
+
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+        
+        <div class="text-center max-w-2xl mx-auto mb-12">
+            <h2 class="text-3xl font-bold text-slate-900 sm:text-4xl">Donde la magia inicia 🪄</h2>
+            <p class="mt-4 text-lg text-slate-500">Descubre productos hechos con amor. Si ves algo que te guste, ¡no dudes en llevarlo antes de que se agote!</p>
+        </div>
+
+        <!-- CONTENEDOR DE PRODUCTOS -->
+        <div id="grid-catalogo" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+            <!-- Cargando -->
+            <div class="col-span-full flex justify-center py-12">
+                <p class="text-slate-400 font-medium flex items-center gap-2">
+                    <svg class="animate-spin h-5 w-5 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    Cargando productos maravillos...
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER SIMPLE -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm text-slate-500">
+            <p>© <span id="year"></span> GreslynWit. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        function formatearMoneda(valor) {
+            let numero = Number(valor); if (isNaN(numero)) return "$0";
+            let partes = numero.toFixed(2).split(".");
+            partes[0] = partes[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return (partes[1] === "00") ? "$" + partes[0] : "$" + partes[0] + "," + partes[1];
+        }
+
+        // Misma configuración de Firebase para leer los datos
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPOKWNoJw1gfndhYKeNoTjQTUYMogs3lk",
+            authDomain: "greslyn-wit.firebaseapp.com",
+            projectId: "greslyn-wit",
+            storageBucket: "greslyn-wit.firebasestorage.app",
+            messagingSenderId: "391217502718",
+            appId: "1:391217502718:web:33cb102347f6548ce488af",
+            measurementId: "G-8SMR4PPMKJ"
+        };
+
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            
+            // Escuchar SOLO los productos, filtrarlos y renderizarlos
+            db.collection("productos").onSnapshot((snapshot) => {
+                const todos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // Filtramos: que sea producto (no material) y que esté marcado como publico
+                const catalogo = todos.filter(p => (p.categoria || 'producto') === 'producto' && p.publico === true)
+                                      .sort((a, b) => a.nombre.localeCompare(b.nombre));
+                
+                renderizarCatalogo(catalogo);
+            });
+        } catch (e) {
+            console.error("Error conectando a la base de datos", e);
+            document.getElementById('grid-catalogo').innerHTML = '<p class="text-center text-rose-500 col-span-full py-10">Lo sentimos, no pudimos cargar el catálogo en este momento.</p>';
+        }
+
+        function renderizarCatalogo(productos) {
+            const cont = document.getElementById('grid-catalogo');
+            cont.innerHTML = '';
+            
+            if (productos.length === 0) {
+                cont.innerHTML = '<div class="col-span-full text-center py-16"><span class="text-4xl block mb-4">🛒</span><p class="text-slate-500 text-lg">Pronto subiremos nuevos productos. ¡Vuelve más tarde!</p></div>';
+                return;
+            }
+
+            productos.forEach(p => {
+                // Etiqueta de Stock
+                let badgeStock = '';
+                if (p.stock <= 0) {
+                    badgeStock = `<span class="bg-slate-100 text-slate-500 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Agotado</span>`;
+                } else if (p.stock <= 5) {
+                    badgeStock = `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">¡Solo quedan ${p.stock}!</span>`;
+                } else {
+                    badgeStock = `<span class="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Disponible</span>`;
+                }
+
+                // Superposición gris si está agotado
+                const overlayAgotado = p.stock <= 0 
+                    ? `<div class="absolute inset-0 bg-white/50 backdrop-blur-[1px] flex items-center justify-center z-10"><span class="bg-slate-800 text-white px-4 py-2 rounded-lg font-black tracking-widest uppercase transform -rotate-6 shadow-xl">Agotado</span></div>` 
+                    : '';
+
+                // Imagen (con placeholder si no hay)
+                const imgSrc = p.imagen || 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 24 24" fill="none" stroke="%23cbd5e1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-3xl border border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden flex flex-col hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300 transform hover:-translate-y-1 group";
+                
+                card.innerHTML = `
+                    <div class="aspect-square bg-slate-50 relative overflow-hidden">
+                        ${overlayAgotado}
+                        <img src="${imgSrc}" alt="${p.nombre}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${p.imagen ? '' : 'p-10'}">
+                    </div>
+                    <div class="p-6 flex flex-col flex-1 relative">
+                        <div class="mb-4">
+                            ${badgeStock}
+                        </div>
+                        <h3 class="font-bold text-slate-800 text-xl leading-tight mb-2">${p.nombre}</h3>
+                        <div class="mt-auto pt-4 border-t border-slate-100 flex items-end justify-between">
+                            <p class="text-brand-600 font-black text-2xl">${formatearMoneda(p.venta)}</p>
+                        </div>
+                    </div>
+                `;
+                cont.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
