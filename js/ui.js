@@ -40,7 +40,7 @@ export function formatearMoneda(valor) {
     return (partes[1] === "00") ? "$" + partes[0] : "$" + partes[0] + "," + partes[1];
 }
 
-function comprimirImagen(file) {
+export function comprimirImagen(file) {
     return new Promise((resolve) => {
         if (!file) { resolve(null); return; }
         const reader = new FileReader();
@@ -49,8 +49,8 @@ function comprimirImagen(file) {
             const img = new Image(); img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // ¡CAMBIO CLAVE! Aumentamos el tamaño máximo a 1080px para máxima nitidez
-                const MAX_WIDTH = 1080, MAX_HEIGHT = 1080;
+                // Aumentamos el tamaño a 1000px para máxima nitidez
+                const MAX_WIDTH = 1000, MAX_HEIGHT = 1000;
                 let width = img.width, height = img.height;
 
                 if (width > height) { 
@@ -61,8 +61,8 @@ function comprimirImagen(file) {
                 
                 canvas.width = width; canvas.height = height;
                 canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-                // Aumentamos la calidad JPG al 90% (0.9)
-                resolve(canvas.toDataURL('image/jpeg', 0.9)); 
+                // Aumentamos la calidad JPG a 0.90 (90%)
+                resolve(canvas.toDataURL('image/jpeg', 0.90)); 
             };
         };
     });
