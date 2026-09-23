@@ -1,11 +1,285 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>GreslynWit - Catálogo</title>
+    <link rel="icon" type="image" href="Logo.jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            active: '#d9ff42', // Verde lima 
+                            hover: '#ccee3d'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap');
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </head>
-<body>
-    
+
+<body class="bg-white text-gray-900 flex flex-col min-h-screen">
+
+    <!-- NAVBAR SIMPLE -->
+    <header class="w-full max-w-7xl mx-auto px-6 py-8 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <h1 class="text-2xl font-bold tracking-tight">GreslynWit</h1>
+        </div>
+        <nav class="hidden md:flex gap-8 text-sm font-medium text-gray-600">
+            <a href="#" class="hover:text-black">Inicio</a>
+            <a href="#" class="text-black font-bold">Catálogo</a>
+            <!-- Botón Nosotros abre el Modal -->
+            <button onclick="abrirNosotros()" class="hover:text-black cursor-pointer font-medium">Nosotros</button>
+        </nav>
+    </header>
+
+    <main class="flex-1 w-full max-w-5xl mx-auto px-6 py-6">
+        
+        <h2 class="text-5xl md:text-[5rem] font-semibold tracking-tight mb-10">Catálogo</h2>
+
+        <!-- FILTROS DINÁMICOS -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+            <div id="contenedor-filtros" class="flex gap-3 overflow-x-auto w-full md:w-auto pb-2 hide-scrollbar">
+                <button class="px-5 py-2 rounded-full border border-gray-300 text-sm font-medium text-gray-700 bg-gray-50">Cargando...</button>
+            </div>
+            
+            <div class="flex items-center gap-4 text-sm text-gray-500 font-medium whitespace-nowrap">
+                <span id="contador-resultados">Mostrando 0 resultados</span>
+                <span class="hidden md:inline">|</span>
+                <select class="bg-transparent border-none outline-none font-medium text-gray-700 cursor-pointer hidden md:block">
+                    <option>Ordenar por Defecto</option>
+                    <option>Menor Precio</option>
+                    <option>Mayor Precio</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- GRID DE PRODUCTOS (2 Columnas perfectas) -->
+        <div id="grid-catalogo" class="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-14 pb-20">
+            <div class="col-span-full flex justify-center py-20">
+                <p class="text-gray-400 font-medium">Conectando con la tienda...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL NOSOTROS -->
+    <div id="modal-nosotros" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4 opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full relative shadow-2xl transform scale-95 transition-transform duration-300" id="modal-nosotros-content">
+            <button onclick="cerrarNosotros()" class="absolute top-5 right-5 text-gray-400 hover:text-gray-900 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <div class="text-center pt-4">
+                <img src="Logo.jpeg" alt="GreslynWit Logo" class="w-28 h-28 mx-auto rounded-full object-cover border-4 border-brand-active shadow-md mb-5" onerror="this.src='https://ui-avatars.com/api/?name=GW&background=d9ff42&color=000'">
+                <h3 class="text-2xl font-black text-gray-900 mb-3 tracking-tight">GreslynWit</h3>
+                <p class="text-sm text-gray-600 leading-relaxed font-medium">
+                    Diseñamos cada producto pensando en ofrecerte la mejor calidad y estilo. Somos un emprendimiento hecho con mucho amor. ¡Gracias por apoyarnos!
+                </p>
+                <div class="mt-8 flex justify-center gap-4">
+                    <a href="#" class="text-gray-400 hover:text-black"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg></a>
+                    <a href="#" class="text-gray-400 hover:text-black"><svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER MINIMALISTA -->
+    <footer class="w-full max-w-5xl mx-auto px-6 py-12 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
+        <h1 class="text-3xl font-bold tracking-tight">GreslynWit</h1>
+        <nav class="flex gap-6 text-xs font-semibold text-gray-500">
+            <a href="#" class="hover:text-black">Inicio</a>
+            <a href="#" class="hover:text-black">Catálogo</a>
+            <button onclick="abrirNosotros()" class="hover:text-black">Nosotros</button>
+        </nav>
+    </footer>
+
+    <script>
+        // --- CONTROL MODAL NOSOTROS ---
+        function abrirNosotros() {
+            const m = document.getElementById('modal-nosotros');
+            const c = document.getElementById('modal-nosotros-content');
+            m.classList.remove('hidden');
+            setTimeout(() => { m.classList.remove('opacity-0'); c.classList.remove('scale-95'); }, 10);
+        }
+        function cerrarNosotros() {
+            const m = document.getElementById('modal-nosotros');
+            const c = document.getElementById('modal-nosotros-content');
+            m.classList.add('opacity-0'); c.classList.add('scale-95');
+            setTimeout(() => m.classList.add('hidden'), 300);
+        }
+
+        function formatearMoneda(valor) {
+            let n = Number(valor); if (isNaN(n)) return "$0";
+            let p = n.toFixed(2).split("."); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return (p[1] === "00") ? "$" + p[0] : "$" + p[0] + "," + p[1];
+        }
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDPOKWNoJw1gfndhYKeNoTjQTUYMogs3lk",
+            authDomain: "greslyn-wit.firebaseapp.com",
+            projectId: "greslyn-wit",
+            storageBucket: "greslyn-wit.firebasestorage.app",
+            messagingSenderId: "391217502718",
+            appId: "1:391217502718:web:33cb102347f6548ce488af"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let todosLosProductos = [];
+        let categoriaActiva = "Todos";
+        window.carouselIndices = {}; 
+
+        db.collection("productos").onSnapshot((snapshot) => {
+            const dataBruta = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            todosLosProductos = dataBruta.filter(p => (p.categoria || 'producto') === 'producto' && p.publico === true);
+            
+            todosLosProductos = todosLosProductos.map(p => {
+                let cat = "General"; let nombreLimpio = p.nombre;
+                const regex = /#([\w\u00C0-\u017F]+)/g;
+                const matches = [...p.nombre.matchAll(regex)];
+                if (matches.length > 0) {
+                    cat = matches[0][1].charAt(0).toUpperCase() + matches[0][1].slice(1).toLowerCase();
+                    nombreLimpio = p.nombre.replace(regex, '').trim();
+                }
+                return { ...p, nombreMostrar: nombreLimpio, categoriaFiltro: cat };
+            }).sort((a, b) => a.nombreMostrar.localeCompare(b.nombreMostrar));
+
+            generarFiltros();
+            renderizarCatalogo();
+        });
+
+        function generarFiltros() {
+            const contenedor = document.getElementById('contenedor-filtros');
+            const categoriasUnicas = ["Todos", ...new Set(todosLosProductos.map(p => p.categoriaFiltro))];
+            contenedor.innerHTML = '';
+            
+            categoriasUnicas.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.textContent = cat;
+                if (cat === categoriaActiva) {
+                    btn.className = "px-6 py-2.5 rounded-full text-sm font-bold bg-brand-active border border-brand-active text-gray-900 transition-colors whitespace-nowrap shadow-sm";
+                } else {
+                    btn.className = "px-6 py-2.5 rounded-full text-sm font-semibold border border-gray-200 text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-colors bg-white whitespace-nowrap";
+                }
+                btn.onclick = () => { categoriaActiva = cat; generarFiltros(); renderizarCatalogo(); };
+                contenedor.appendChild(btn);
+            });
+        }
+
+        // LÓGICA DEL CARRUSEL
+        window.cambiarImagen = function(id, step, total) {
+            let currentIndex = window.carouselIndices[id] || 0;
+            currentIndex += step;
+            if (currentIndex < 0) currentIndex = total - 1;
+            if (currentIndex >= total) currentIndex = 0;
+            window.carouselIndices[id] = currentIndex;
+            
+            document.getElementById(`carousel-inner-${id}`).style.transform = `translateX(-${currentIndex * 100}%)`;
+            
+            for (let i = 0; i < total; i++) {
+                const dot = document.getElementById(`dot-${id}-${i}`);
+                if (dot) dot.className = `w-2 h-2 rounded-full transition-colors duration-300 ${i === currentIndex ? 'bg-white shadow-[0_0_2px_rgba(0,0,0,0.5)]' : 'bg-white/40'}`;
+            }
+        };
+
+        function renderizarCatalogo() {
+            const cont = document.getElementById('grid-catalogo');
+            cont.innerHTML = '';
+            
+            const productosFiltrados = categoriaActiva === "Todos" ? todosLosProductos : todosLosProductos.filter(p => p.categoriaFiltro === categoriaActiva);
+            document.getElementById('contador-resultados').textContent = `Mostrando ${productosFiltrados.length} resultados`;
+
+            if (productosFiltrados.length === 0) {
+                cont.innerHTML = '<div class="col-span-full text-center py-16"><p class="text-gray-400 text-lg font-medium">No hay productos en esta categoría.</p></div>'; return;
+            }
+
+            productosFiltrados.forEach(p => {
+                // Configurar Imágenes
+                const imgPlaceholder = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="%23e2e8f0" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>';
+                let arrayImagenes = [];
+                if (p.imagenes && Array.isArray(p.imagenes) && p.imagenes.length > 0) arrayImagenes = p.imagenes;
+                else if (p.imagen) arrayImagenes = [p.imagen];
+                else arrayImagenes = [imgPlaceholder];
+
+                window.carouselIndices[p.id] = 0; 
+
+                // Configurar Estados
+                const agotado = p.stock <= 0;
+                
+                // Etiqueta Agotado (No bloquea los clics del carrusel)
+                const overlayAgotado = agotado 
+                    ? `<div class="absolute top-4 left-4 z-30 pointer-events-none"><span class="bg-gray-900/90 backdrop-blur-md text-white px-3 py-1.5 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-lg">Agotado</span></div>` 
+                    : '';
+                
+                // Alerta visible arriba del nombre si quedan menos de 4 (1, 2, o 3)
+                const stockAlert = (!agotado && p.stock > 0 && p.stock <= 3) 
+                    ? `<span class="inline-block bg-brand-active text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide mb-2">¡Últimas ${p.stock} unidades!</span>` 
+                    : '';
+                
+                // HTML de las Imágenes
+                let slidesHTML = arrayImagenes.map(img => `
+                    <div class="w-full h-full flex-shrink-0 bg-gray-50">
+                        <img src="${img}" alt="${p.nombreMostrar}" class="w-full h-full object-cover">
+                    </div>
+                `).join('');
+
+                // HTML del Carrusel (Botones y Puntos) - Z-index alto para estar encima de todo
+                let controlsHTML = '';
+                if (arrayImagenes.length > 1) {
+                    controlsHTML = `
+                        <button onclick="event.preventDefault(); window.cambiarImagen('${p.id}', -1, ${arrayImagenes.length})" class="absolute left-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button onclick="event.preventDefault(); window.cambiarImagen('${p.id}', 1, ${arrayImagenes.length})" class="absolute right-3 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-gray-800 p-2 rounded-full shadow-md backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity z-40">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 z-40 pointer-events-none">
+                            ${arrayImagenes.map((_, i) => `<div id="dot-${p.id}-${i}" class="w-2 h-2 rounded-full transition-colors duration-300 ${i === 0 ? 'bg-white shadow-[0_0_2px_rgba(0,0,0,0.5)]' : 'bg-white/40'}"></div>`).join('')}
+                        </div>
+                    `;
+                }
+
+                // Armar Tarjeta
+                const card = document.createElement('div');
+                card.className = `flex flex-col group w-full transition-opacity duration-300 ${agotado ? 'opacity-80' : ''}`;
+                
+                card.innerHTML = `
+                    <div class="w-full aspect-[4/4] md:aspect-[4/3] rounded-3xl relative overflow-hidden mb-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-shadow duration-300 bg-gray-50">
+                        ${overlayAgotado}
+                        <div id="carousel-inner-${p.id}" class="flex h-full w-full transition-transform duration-500 ease-out" style="transform: translateX(0%);">
+                            ${slidesHTML}
+                        </div>
+                        ${controlsHTML}
+                    </div>
+                    
+                    <div class="px-1 flex justify-between items-start gap-4">
+                        <div class="flex flex-col flex-1 min-w-0">
+                            ${stockAlert}
+                            <h3 class="text-[17px] font-bold text-gray-900 leading-snug truncate">${p.nombreMostrar}</h3>
+                            <p class="text-[13px] text-gray-400 mt-1 font-medium">${p.categoriaFiltro}</p>
+                        </div>
+                        <p class="text-[17px] font-bold text-gray-900 whitespace-nowrap">${formatearMoneda(p.venta)}</p>
+                    </div>
+                `;
+                cont.appendChild(card);
+            });
+        }
+    </script>
 </body>
 </html>
