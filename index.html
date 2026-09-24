@@ -174,14 +174,30 @@
             todosLosProductos = dataBruta.filter(p => (p.categoria || 'producto') === 'producto' && p.publico === true);
             
             todosLosProductos = todosLosProductos.map(p => {
-                let cat = "General"; let nombreLimpio = p.nombre;
+                let cat = "General"; 
+                let nombreLimpio = p.nombre;
+                let esPorPedido = false;
+
                 const regex = /#([\w\u00C0-\u017F]+)/g;
                 const matches = [...p.nombre.matchAll(regex)];
+                
                 if (matches.length > 0) {
-                    cat = matches[0][1].charAt(0).toUpperCase() + matches[0][1].slice(1).toLowerCase();
+                    const tags = matches.map(m => m[1]);
+                    
+                    // Verificamos si alguna etiqueta es "Pedido" (ignorando mayúsculas/minúsculas)
+                    esPorPedido = tags.some(t => t.toLowerCase() === 'pedido');
+                    
+                    // Buscamos la primera etiqueta que NO sea "Pedido" para usarla como categoría visual
+                    const catTag = tags.find(t => t.toLowerCase() !== 'pedido');
+                    if (catTag) {
+                        cat = catTag.charAt(0).toUpperCase() + catTag.slice(1).toLowerCase();
+                    }
+                    
+                    // Removemos TODOS los hashtags del nombre que ve el cliente
                     nombreLimpio = p.nombre.replace(regex, '').trim();
                 }
-                return { ...p, nombreMostrar: nombreLimpio, categoriaFiltro: cat };
+                
+                return { ...p, nombreMostrar: nombreLimpio, categoriaFiltro: cat, esPorPedido };
             }).sort((a, b) => a.nombreMostrar.localeCompare(b.nombreMostrar));
 
             generarFiltros();
@@ -244,17 +260,29 @@
 
                 const agotado = p.stock <= 0;
                 
-                // NUEVO: Etiqueta de "Sin Stock / Contáctame" llamativa y descriptiva
-                const overlayAgotado = agotado 
-                    ? `<div class="absolute top-4 left-4 z-30 pointer-events-none max-w-[85%]">
-                           <div class="bg-gray-900/95 backdrop-blur-md text-white px-3 py-2 rounded-2xl shadow-xl border border-gray-800 flex flex-col">
-                               <span class="font-black uppercase tracking-widest text-[10px] text-brand-active">Sin stock</span>
-                               <span class="font-medium text-[11px] leading-tight mt-0.5">¡Contáctame si lo quieres!</span>
-                           </div>
-                       </div>` 
-                    : '';
+                // LÓGICA DE ETIQUETA AGOTADO O POR PEDIDO
+                let overlayAgotado = '';
+                if (agotado) {
+                    if (p.esPorPedido) {
+                        overlayAgotado = `
+                            <div class="absolute top-4 left-4 z-30 pointer-events-none max-w-[85%]">
+                                <div class="bg-gray-900/95 backdrop-blur-md text-white px-3 py-2 rounded-2xl shadow-xl border border-gray-800 flex flex-col">
+                                    <span class="font-black uppercase tracking-widest text-[10px] text-brand-active">Por pedido</span>
+                                    <span class="font-medium text-[11px] leading-tight mt-0.5">¡No dudes en escribirme para pedirlo!</span>
+                                </div>
+                            </div>`;
+                    } else {
+                        overlayAgotado = `
+                            <div class="absolute top-4 left-4 z-30 pointer-events-none max-w-[85%]">
+                                <div class="bg-gray-900/95 backdrop-blur-md text-white px-3 py-2 rounded-2xl shadow-xl border border-gray-800 flex flex-col">
+                                    <span class="font-black uppercase tracking-widest text-[10px] text-brand-active">Sin stock</span>
+                                    <span class="font-medium text-[11px] leading-tight mt-0.5">¡Contáctame si lo quieres!</span>
+                                </div>
+                            </div>`;
+                    }
+                }
                 
-                // Etiqueta de Últimas Unidades (Se mantiene intacta)
+                // Etiqueta de Últimas Unidades (Solo visible si hay inventario de 1 a 3 unidades)
                 const stockAlert = (!agotado && p.stock > 0 && p.stock <= 3) 
                     ? `<span class="inline-block bg-brand-active text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wide mb-2">¡Últimas ${p.stock} unidades!</span>` 
                     : '';
@@ -284,7 +312,7 @@
                     `;
                 }
 
-                // Armar Tarjeta (Le dimos un leve 'opacity-90' en vez de 80% para que la foto destaque más aunque esté agotado)
+                // Armar Tarjeta
                 const card = document.createElement('div');
                 card.className = `flex flex-col group w-full transition-opacity duration-300 ${agotado ? 'opacity-90' : ''}`;
                 
