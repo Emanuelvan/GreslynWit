@@ -49,8 +49,8 @@ export function comprimirImagen(file) {
             const img = new Image(); img.src = e.target.result;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                // Aumentamos el tamaño a 1000px para máxima nitidez
-                const MAX_WIDTH = 1000, MAX_HEIGHT = 1000;
+                // Aumentamos el tamaño a 1080px para máxima nitidez
+                const MAX_WIDTH = 1080, MAX_HEIGHT = 1080;
                 let width = img.width, height = img.height;
 
                 if (width > height) { 
