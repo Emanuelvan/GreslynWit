@@ -473,7 +473,7 @@ function renderizarTransacciones() {
         }
     });
 
-    // --- CÁLCULOS GLOBALES ---
+    // --- CÁLCULOS GLOBALES --- Arrleglado
     const utilG = inG - cmG - egG;
     // Cálculo arreglado del margen global
     const mgG = inG > 0 ? (utilG / inG) * 100 : 0;
