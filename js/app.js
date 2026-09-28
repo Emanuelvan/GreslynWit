@@ -409,30 +409,105 @@ document.getElementById('form-ocasional').addEventListener('submit', async (e) =
 });
 
 // Render global finanzas y reportes
+// ==========================================
+// RENDERIZAR TABLAS Y MÉTRICAS (FINANZAS Y REPORTES)
+// ==========================================
+
+// Función auxiliar para darle estilo a las etiquetas de la tabla
+function confTipoTrans(tipo) {
+    if (tipo === 'venta') return { t: 'Venta (Ingreso)', c: 'bg-emerald-100 text-emerald-800' };
+    if (tipo === 'gasto') return { t: 'Compra (Egreso)', c: 'bg-rose-100 text-rose-800' };
+    if (tipo === 'ingreso_ocasional') return { t: 'Ingreso Extra', c: 'bg-teal-100 text-teal-800' };
+    if (tipo === 'gasto_ocasional') return { t: 'Gasto Extra', c: 'bg-orange-100 text-orange-800' };
+    return { t: 'Desconocido', c: 'bg-gray-100 text-gray-800' };
+}
+
 function renderizarTransacciones() {
-    const tr = transacciones, sF = document.getElementById('filtro-mes').value;
-    let inG=0, egG=0, cmG=0, inR=0, egR=0, cmR=0;
-    const bd = document.getElementById('tabla-cuerpo'), bdr = document.getElementById('tabla-cuerpo-reportes'); bd.innerHTML=''; bdr.innerHTML='';
+    const tr = transacciones;
+    const sF = document.getElementById('filtro-mes').value;
+    
+    // Variables Globales (G) y de Reporte (R)
+    let inG = 0, egG = 0, cmG = 0, inR = 0, egR = 0, cmR = 0;
+    
+    const bd = document.getElementById('tabla-cuerpo');
+    const bdr = document.getElementById('tabla-cuerpo-reportes'); 
+    bd.innerHTML = ''; 
+    bdr.innerHTML = '';
     
     tr.forEach(t => {
         const fDate = `${new Date(t.fecha).getFullYear()}-${String(new Date(t.fecha).getMonth() + 1).padStart(2, '0')}`;
-        const esIn = (t.tipo === 'venta' || t.tipo === 'ingreso_ocasional'), m = formatearMoneda(t.monto);
-        const trH = `<tr class="hover:bg-slate-50"><td class="px-6 py-4 text-slate-500">${new Date(t.fecha).toLocaleDateString()}</td><td class="px-6 py-4 font-medium">${t.detalle}</td><td class="px-6 py-4">${t.tipo}</td><td class="px-6 py-4">${t.cantidad}</td><td class="px-6 py-4 font-bold text-right">${m}</td></tr>`;
+        const esIn = (t.tipo === 'venta' || t.tipo === 'ingreso_ocasional');
+        const m = formatearMoneda(t.monto);
+        const conf = confTipoTrans(t.tipo);
+        const esOca = (t.tipo === 'ingreso_ocasional' || t.tipo === 'gasto_ocasional');
         
-        if(esIn){ inG+=t.monto; if(t.tipo==='venta') cmG += (t.costoUnidadAsociado||0)*(t.cantidad||1); } else { egG+=t.monto; }
+        // Fila con colores, etiquetas y signos (+ en verde, - en rojo)
+        const trH = `
+            <tr class="hover:bg-slate-50 transition-colors">
+                <td class="px-6 py-4 whitespace-nowrap text-slate-500">${new Date(t.fecha).toLocaleDateString()}</td>
+                <td class="px-6 py-4 whitespace-nowrap font-medium text-slate-900">${t.detalle}</td>
+                <td class="px-6 py-4 whitespace-nowrap"><span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${conf.c}">${conf.t}</span></td>
+                <td class="px-6 py-4 whitespace-nowrap text-slate-500">${esOca && t.cantidad === 1 ? '-' : t.cantidad}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right font-bold ${esIn ? 'text-emerald-600' : 'text-rose-600'}">${esIn ? '+' : '-'}${m}</td>
+            </tr>
+        `;
+        
+        // Sumar a variables Globales
+        if (esIn) { 
+            inG += t.monto; 
+            if (t.tipo === 'venta') cmG += (t.costoUnidadAsociado || 0) * (t.cantidad || 1); 
+        } else { 
+            egG += t.monto; 
+        }
         bd.innerHTML += trH;
 
-        if(sF === 'todos' || sF === fDate) {
-            if(esIn){ inR+=t.monto; if(t.tipo==='venta') cmR += (t.costoUnidadAsociado||0)*(t.cantidad||1); } else { egR+=t.monto; }
+        // Sumar a variables del Reporte Mensual (si aplica el filtro)
+        if (sF === 'todos' || sF === fDate) {
+            if (esIn) { 
+                inR += t.monto; 
+                if (t.tipo === 'venta') cmR += (t.costoUnidadAsociado || 0) * (t.cantidad || 1); 
+            } else { 
+                egR += t.monto; 
+            }
             bdr.innerHTML += trH;
         }
     });
 
+    // --- CÁLCULOS GLOBALES ---
+    const utilG = inG - cmG - egG;
+    // Cálculo arreglado del margen global
+    const mgG = inG > 0 ? (utilG / inG) * 100 : 0;
+
     document.getElementById('metric-ingresos').textContent = formatearMoneda(inG); 
-    document.getElementById('metric-egresos').textContent = formatearMoneda(egG+cmG); 
-    document.getElementById('metric-utilidad').textContent = formatearMoneda(inG-cmG-egG);
-    document.getElementById('rep-metric-ingresos').textContent = formatearMoneda(inR); 
-    document.getElementById('rep-metric-egresos').textContent = formatearMoneda(egR+cmR); 
-    document.getElementById('rep-metric-utilidad').textContent = formatearMoneda(inR-cmR-egR);
+    document.getElementById('metric-egresos').textContent = formatearMoneda(egG + cmG); 
+    
+    const mUG = document.getElementById('metric-utilidad'); 
+    mUG.textContent = formatearMoneda(utilG); 
+    mUG.className = `text-2xl font-bold mt-1 ${utilG > 0 ? 'text-emerald-600' : (utilG < 0 ? 'text-rose-600' : 'text-slate-900')}`;
+    
+    // Asignación correcta al elemento del margen
+    const metricMargen = document.getElementById('metric-margen');
+    if (metricMargen) metricMargen.textContent = `${mgG.toFixed(1)}%`;
+
+    // --- CÁLCULOS REPORTES MENSUALES ---
+    const utilR = inR - cmR - egR;
+    
+    const repIngresos = document.getElementById('rep-metric-ingresos');
+    if (repIngresos) repIngresos.textContent = formatearMoneda(inR); 
+    
+    const repEgresos = document.getElementById('rep-metric-egresos');
+    if (repEgresos) repEgresos.textContent = formatearMoneda(egR + cmR); 
+    
+    const mUR = document.getElementById('rep-metric-utilidad'); 
+    if (mUR) {
+        mUR.textContent = formatearMoneda(utilR); 
+        mUR.className = `text-2xl font-bold mt-1 ${utilR > 0 ? 'text-emerald-600' : (utilR < 0 ? 'text-rose-600' : 'text-slate-900')}`;
+    }
+}
+
+// Escuchar cambios en el selector de mes para actualizar todo
+const filtroMesEl = document.getElementById('filtro-mes');
+if (filtroMesEl) {
+    filtroMesEl.addEventListener('change', renderizarTransacciones);
 }
 document.getElementById('filtro-mes').addEventListener('change', renderizarTransacciones);
